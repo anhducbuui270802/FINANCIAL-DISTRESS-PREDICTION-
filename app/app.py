@@ -1,10 +1,17 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import numpy as np
 from sklearn.preprocessing import LabelEncoder
 
+def softmax(z):
+    exp_z = np.exp(z)
+    sum_exp_z = np.sum(exp_z)
+    softmax_output = exp_z / sum_exp_z
+    return softmax_output
 
-clf = joblib.load("./catboost_model.pkl")
+
+# clf = joblib.load("./catboost_model.pkl")
 
 # Preprocessing input data
 ## Khởi tạo LabelEncoder
@@ -98,7 +105,7 @@ st.markdown(button_style, unsafe_allow_html=True)
 # If button is pressed
 if st.button("PREDICT"):
     # Unpickle classifier
-    # clf = joblib.load("./catboost_model.pkl")
+    clf = joblib.load("./catboost_model.pkl")
     
     # Store inputs into dataframe
     X = pd.DataFrame(
@@ -117,27 +124,21 @@ if st.button("PREDICT"):
     # Mã hóa cột "STOCK_EXCHANGE"
     X['STOCK EXCHANGE'] = label_encoder.fit_transform(X['STOCK EXCHANGE'])
 
-
-    print(X.info())
-    print(X)
-
     X = X.applymap(convert_string_to_float)
     
     # Get prediction
-    y_pred = clf.predict(X)
     prediction = clf.predict(X)[0]
     probabilities = clf.predict_proba(X)
     
     # Output prediction
     if prediction == 0:
         predict = "Không có nguy cơ gặp khó khăn trong tương lai"
-        probabiliti = "{:.2f}%".format(probabilities[0, 1] * 100)
+        # probabiliti = "{:.2f}%".format(probabilities[0, 1] * 100)
     else:
         predict = "⚠️ Có nguy cơ gặp khó khăn trong tương lai"
-        probabiliti = "{:.2f}%".format(probabilities[0, 0] * 100)
-
-    st.text(f"Dự đoán:     \n{predict}     [Mức tin cậy: {probabiliti}]")
-    
+        # probabiliti = "{:.2f}%".format(probabilities[0, 0] * 100)
+    probabiliti = max(softmax(probabilities[0])) * 100
+    st.text(f"Dự đoán:     \n{predict}     [Mức tin cậy: {probabiliti:.2f}%]")
     
 
 # Batch prediction
@@ -146,19 +147,29 @@ uploaded_file = st.file_uploader("Chọn file EXCEL", type=["xlsx"])
 
 if uploaded_file is not None:
     # Load classifier
-    # clf = joblib.load("./catboost_model.pkl")
+    clf = joblib.load("./catboost_model.pkl")
 
     df = pd.read_excel(uploaded_file)
-    
+    df = pd.DataFrame(df, columns=['CODE', 'NAME', 
+            'STOCK EXCHANGE', 'YEAR','EBIT', 'EBITDA',
+            'TOTAL EQUITY/TOTAL ASSETS', 'EPS', 'CASH/TOTAL CURRENT ASSETS',
+            'TOTAL CURRENT ASSET/TOTAL ASSET', 'LONG-TERM ASSETS/TOTAL ASSETS',
+            'QUICK RATIO',
+            'Market Value of Total Equity / Book Values of Total Liabilities',
+            'Sales/Total Assets', 'EBIT/Total Assets',
+            'Retain Earnings/Total Assets', 'Working Capitals/Total Asset', 'ROIC'
+        ],)
+
     # Preprocess input data
     df_na = df[df.isna().any(axis=1)]
     df = df.dropna()
+
     df.drop(['CODE', 'NAME', 'YEAR'], axis=1, inplace=True)
     try:
         df.drop(['TARGET'], axis=1, inplace=True)
     except:
         pass
-    df['STOCK EXCHANGE'] = label_encoder.fit_transform(X['STOCK EdfCHANGE'])
+    df['STOCK EXCHANGE'] = label_encoder.fit_transform(df['STOCK EXCHANGE'])
 
 
     print(df.info())
@@ -169,17 +180,14 @@ if uploaded_file is not None:
     # Make predictions
     predictions = clf.predict(df)
     probabilities = clf.predict_proba(df)
-    # print(predictions)
+    # probabiliti = max(softmax(probabilities[0]))
 
     # Add predictions as a new column in the DataFrame
     df['TARGET'] = predictions
+    df['probabilities'] = max(softmax(probabilities[0]))
 
-    # Add probabilities as a new column in the DataFrame
-    max_values = [max(row) for row in probabilities]
-    df['probabilities'] = df.apply(lambda x: max_values[x.name], axis=1)
-
-    # # Output input data and predictions
-    # st.dataframe(df)
+    # Output input data and predictions
+    st.dataframe(df)
 
 
     # Export DataFrame to csv
