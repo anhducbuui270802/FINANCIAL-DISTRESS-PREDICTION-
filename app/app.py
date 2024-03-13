@@ -144,7 +144,7 @@ uploaded_file = st.file_uploader("Chọn file EXCEL", type=["xlsx"])
 
 if uploaded_file is not None:
     # Load classifier
-    clf = joblib.load("./demo/clf.pkl")
+    clf = joblib.load("./catboost_model.pkl")
 
     df = pd.read_excel(uploaded_file)
     
