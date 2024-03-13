@@ -4,6 +4,8 @@ import joblib
 from sklearn.preprocessing import LabelEncoder
 
 
+clf = joblib.load("./catboost_model.pkl")
+
 # Preprocessing input data
 ## Khởi tạo LabelEncoder
 label_encoder = LabelEncoder()
@@ -96,7 +98,7 @@ st.markdown(button_style, unsafe_allow_html=True)
 # If button is pressed
 if st.button("PREDICT"):
     # Unpickle classifier
-    clf = joblib.load("./catboost_model.pkl")
+    # clf = joblib.load("./catboost_model.pkl")
     
     # Store inputs into dataframe
     X = pd.DataFrame(
@@ -144,7 +146,7 @@ uploaded_file = st.file_uploader("Chọn file EXCEL", type=["xlsx"])
 
 if uploaded_file is not None:
     # Load classifier
-    clf = joblib.load("./catboost_model.pkl")
+    # clf = joblib.load("./catboost_model.pkl")
 
     df = pd.read_excel(uploaded_file)
     
@@ -187,57 +189,39 @@ if uploaded_file is not None:
         return df.to_csv(index=False).encode('utf-8')
     csv = convert_df(df)
     
-
-
-    # Count the labels
-    label_counts = df['predict'].value_counts()
-
-    # Output label counts
-    if len(label_counts) == 1:
-        label = label_counts.index[0]
-        if label == 0:
-            st.write(f"Tất cả sinh viên đều rớt")
-        else:
-            st.write(f"Tất cả sinh viên đều đậu")
-    else:
-        st.write("Số sinh viên dự đoán học lực yếu kém:", label_counts[0])
-        st.write("Số sinh viên dự đoán học lực trên trung bình:", label_counts[1])
-        st.download_button(
-        "Press to Download cvs file",
-        csv,
-        "predicted.csv",
-        "text/csv",
-        key='download-csv'
-        )
+    st.download_button(
+    "Press to Download cvs file",
+    csv,
+    "predicted.csv",
+    "text/csv",
+    key='download-csv'
+    )
         
-        # Filter
-
-        Filter = st.selectbox("Filter:", ("Các trường hợp dự đoán có độ tin cậy thấp", "Các dòng dữ liệu bị thiếu" ))
-            
-
-        if st.button("Filter"):
-            if Filter == "Các trường hợp dự đoán có độ tin cậy thấp" :
-                df_low_probabilities = df[df["probabilities"] < 0.6]
-                csv_low_probabilities = convert_df(df_low_probabilities)
+    # Filter
+    Filter = st.selectbox("Filter:", ("Các trường hợp dự đoán có độ tin cậy thấp", "Các dòng dữ liệu bị thiếu" ))
+    if st.button("Filter"):
+        if Filter == "Các trường hợp dự đoán có độ tin cậy thấp" :
+            df_low_probabilities = df[df["probabilities"] < 0.6]
+            csv_low_probabilities = convert_df(df_low_probabilities)
+            st.write(f"Các trường hợp dự đoán có độ tin cậy thấp:")
+            st.dataframe(df_low_probabilities)
+            st.download_button(
+            "Press to Download cvs file",
+            csv_low_probabilities,
+            "predicted_low_probabilities.csv",
+            "text/csv",
+            key='download-csv-low-probabilities'
+            )
+        elif Filter == "Các dòng dữ liệu bị thiếu" :
+                csv_df_na = convert_df(df_na)
                 st.write(f"Các trường hợp dự đoán có độ tin cậy thấp:")
-                st.dataframe(df_low_probabilities)
+                st.dataframe(df_na)
                 st.download_button(
                 "Press to Download cvs file",
-                csv_low_probabilities,
+                csv_df_na,
                 "predicted_low_probabilities.csv",
                 "text/csv",
                 key='download-csv-low-probabilities'
                 )
-            elif Filter == "Các dòng dữ liệu bị thiếu" :
-                    csv_df_na = convert_df(df_na)
-                    st.write(f"Các trường hợp dự đoán có độ tin cậy thấp:")
-                    st.dataframe(df_na)
-                    st.download_button(
-                    "Press to Download cvs file",
-                    csv_df_na,
-                    "predicted_low_probabilities.csv",
-                    "text/csv",
-                    key='download-csv-low-probabilities'
-                    )
 
 
