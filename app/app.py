@@ -64,7 +64,7 @@ with col14:
 
 col15, col16 = st.columns(2)
 with col15:
-    YEAR = st.number_input("YEAR")
+    AGE = st.number_input("AGE")
 with col16:
     NET_INCOM_TOTAL_ASSET = st.number_input("NET INCOME/TOTAL ASSET")
 
@@ -100,7 +100,7 @@ if st.button("PREDICT"):
     
     # Store inputs into dataframe
     X = pd.DataFrame(
-        [[EBIT, EBITDA, TOTAL_EQUITY_TOTAL_ASSETS, EPS, CASH_TOTAL_CURRENT_ASSETS, TOTAL_CURRENT_ASSET_TOTAL_ASSET, LONG_TERM_ASSETS_TOTAL_ASSETS, QUICK_RATIO, Market_Value_of_Total_Equity_Book_Values_of_Total_Liabilities, Sales_Total_Assets, EBIT_Total_Assets, Retain_Earnings_Total_Assets, Working_Capitals_Total_Asset, ROIC, YEAR, NET_INCOM_TOTAL_ASSET]],
+        [[EBIT, EBITDA, TOTAL_EQUITY_TOTAL_ASSETS, EPS, CASH_TOTAL_CURRENT_ASSETS, TOTAL_CURRENT_ASSET_TOTAL_ASSET, LONG_TERM_ASSETS_TOTAL_ASSETS, QUICK_RATIO, Market_Value_of_Total_Equity_Book_Values_of_Total_Liabilities, Sales_Total_Assets, EBIT_Total_Assets, Retain_Earnings_Total_Assets, Working_Capitals_Total_Asset, ROIC, AGE, NET_INCOM_TOTAL_ASSET]],
         columns=[
             'EBIT', 'EBITDA',
             'TOTAL EQUITY/TOTAL ASSETS', 'EPS', 'CASH/TOTAL CURRENT ASSETS',
@@ -109,7 +109,7 @@ if st.button("PREDICT"):
             'Market Value of Total Equity / Book Values of Total Liabilities',
             'Sales/Total Assets', 'EBIT/Total Assets',
             'Retain Earnings/Total Assets', 'Working Capitals/Total Asset', 'ROIC',
-            'YEAR.1', 'NET INCOME/TOTAL ASSET'
+            'AGE', 'NET INCOME/TOTAL ASSET'
 
         ],
     )
@@ -117,7 +117,7 @@ if st.button("PREDICT"):
     X = X.applymap(convert_string_to_float)
     regression_fearture = X.columns.tolist()
     # regression_fearture.remove('STOCK EXCHANGE')
-    regression_fearture.remove('YEAR.1')
+    regression_fearture.remove('AGE')
     X[regression_fearture] = loaded_scaler.transform(X[regression_fearture])
 
     
@@ -156,7 +156,7 @@ if uploaded_file is not None:
             'Market Value of Total Equity / Book Values of Total Liabilities',
             'Sales/Total Assets', 'EBIT/Total Assets',
             'Retain Earnings/Total Assets', 'Working Capitals/Total Asset', 'ROIC',
-            'YEAR.1', 'NET INCOME/TOTAL ASSET'
+            'AGE', 'NET INCOME/TOTAL ASSET'
         ],)
 
     # Preprocess input data
@@ -170,7 +170,7 @@ if uploaded_file is not None:
     regression_fearture = df.columns.tolist()
     print(regression_fearture)
     # regression_fearture.remove('STOCK EXCHANGE')
-    regression_fearture.remove('YEAR.1')
+    regression_fearture.remove('AGE')
     df[regression_fearture] = loaded_scaler.transform(df[regression_fearture])
     df = df.applymap(convert_string_to_float)
     
